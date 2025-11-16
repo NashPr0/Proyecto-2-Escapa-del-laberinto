@@ -37,7 +37,7 @@ if __name__ == "__main__":
 
     print("\nLeyenda:")
     print("  # = muro")
-    print("    = camino")
+    print("  C  = camino")
     print("  L = liana")
     print("  T = tunel")
 
