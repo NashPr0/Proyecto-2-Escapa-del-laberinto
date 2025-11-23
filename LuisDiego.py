@@ -53,5 +53,17 @@ class enemigo:
         # Último lugar de respawn para no repetir siempre el mismo
         self._ultimo_respawn = (fila, col)
 
+        #Utilidades básicas    
+        
+    def posicion(self):
+       return (self.fila, self.col)
+
+    def matar(self, ahora):
+        """Marca al enemigo como muerto y programa su respawn."""
+        self.vivo = False
+        self.tiempo_respawn = ahora + self.respawn_delay
+        self.stuck = 0
+
+
 
     
