@@ -1,3 +1,18 @@
+#CONSTANTES DE JUGADOR Y ENEMIGOS
+MAX_ENERGIA = 10
+COSTO_CORRER = 3
+REGEN_ENERGIA = 1
+
+MAX_TRAMPAS = 3
+COOLDOWN_TRAMPA = 5.0
+RESPAWN_ENEMIGO_SEG = 10.0
+
+DURACION_PARTIDA_CAZADOR = 60
+DURACION_PARTIDA_ESCAPA = 60
+
+PLAYER_INTERVAL = 0.4  # base para calcular la velocidad
+
+
 class jugador:
     def __init__(self, fila, col):
         self.fila = fila
