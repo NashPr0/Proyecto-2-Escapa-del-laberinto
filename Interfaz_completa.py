@@ -14,10 +14,15 @@ LIANA = 2
 TUNEL = 3
 SALIDA = 4
 
-TAM_CELDA = 32 
+TAM_CELDA = 32
 
 ANCHO_MAPA = 23
 ALTO_MAPA = 15
+
+ARCHIVO_PUNTAJES_CAZADOR = "puntajes_cazador.txt"
+ARCHIVO_PUNTAJES_ESCAPA  = "puntajes_escapa.txt"
+
+TIEMPO_PREVIEW = 5.0
 
 # Utilidades
 
