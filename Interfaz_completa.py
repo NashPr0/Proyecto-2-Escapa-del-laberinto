@@ -82,3 +82,9 @@ class Mapa:
         for sr, sc in self.salidas:
             self.m[sr][sc] = SALIDA
 
+
+# Menu 
+if __name__ == "__main__":
+    root = tk.Tk()
+    app = JuegoApp(root) # control y Logica 
+    root.mainloop()
