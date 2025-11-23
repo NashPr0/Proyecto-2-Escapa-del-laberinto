@@ -155,7 +155,61 @@ class enemigo:
 
         if sound_manager:
             sound_manager.play_robot_regeneracion()
+    
+    #IA QUE PERSIGUE AL JUGADOR (MODO ESCAPA)
+    def mover_hacia(self, destino, mapa):
+        """
+        Mueve al enemigo un paso hacia 'destino'.
+        - Usa BFS del mapa para encontrar el mejor paso.
+        - Si BFS no ofrece movimiento (df,dc == 0), intenta "rodear"
+          el obstáculo probando un movimiento local que acerque.
+        - Si se atasca muchas veces, hace un movimiento aleatorio válido
+          para tratar de salir del hueco.
+        """
+        if not self.vivo:
+            return
 
+        origen = self.posicion()
+        df, dc = mapa.siguiente_paso_enemigo(origen, destino)
+
+        if df == 0 and dc == 0:
+            # No hay paso directo -> heurística local
+            of, oc = origen
+            df_mejor, dc_mejor = 0, 0
+            dist_actual = abs(of - destino[0]) + abs(oc - destino[1])
+            for dr, dc2 in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
+                nf, nc = of + dr, oc + dc2
+                if not mapa.es_valido_enemigo(nf, nc):
+                    continue
+                d = abs(nf - destino[0]) + abs(nc - destino[1])
+                if d < dist_actual:
+                    df_mejor, dc_mejor = dr, dc2
+                    dist_actual = d
+
+            if df_mejor != 0 or dc_mejor != 0:
+                df, dc = df_mejor, dc_mejor
+
+        if df == 0 and dc == 0:
+            # Seguimos sin salida, contamos como atasco
+            self.stuck += 1
+            if self.stuck >= 10:
+                dirs = [(-1, 0), (1, 0), (0, -1), (0, 1)]
+                random.shuffle(dirs)
+                for dr, dc2 in dirs:
+                    nf, nc = self.fila + dr, self.col + dc2
+                    if mapa.es_valido_enemigo(nf, nc):
+                        self.fila, self.col = nf, nc
+                        self.stuck = 0
+                        return
+            return
+
+        nf = self.fila + df
+        nc = self.col + dc
+        if mapa.es_valido_enemigo(nf, nc):
+            self.fila, self.col = nf, nc
+            self.stuck = 0
+        else:
+            self.stuck += 1
 
 
 
