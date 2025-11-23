@@ -18,7 +18,143 @@ TAM_CELDA = 32
 
 ANCHO_MAPA = 23
 ALTO_MAPA = 15
-#---------------------------------------------------------------------
+
+# Utilidades
+
+def guardar_puntaje(nombre, modo, puntaje, gano, tiempo, archivo):
+    pass
+def leer_puntajes(archivo):
+    pass
+def top5_por_archivo(archivo):
+    pass
+def stats_por_jugador(nombre, archivo):
+    pass
+
+#_________________creacion de clases___________________
+# Manejo de sonido
+
+class SoundManager:
+    """
+    Maneja todos los sonidos del juego:
+      - efectos (botón, caminar, muerte, respawn)
+      - música de fondo
+      - sonidos de ganar / perder
+    """
+    def __init__(self):
+        pass
+
+    def _buscar_archivo_multi(self, base_dir, nombre_sin_ext):
+        pass
+
+    def _cargar_sonido_multi(self, base_dir, nombre_sin_ext):
+        pass
+
+    def play_boton(self):
+        pass
+
+    def play_jugador_caminar(self):
+        pass
+
+    def play_jugador_muerte(self):
+        pass
+
+    def play_robot_caminar(self):
+        pass
+
+    def play_robot_muerte(self):
+        pass
+
+    def play_robot_regeneracion(self):
+        pass
+
+    def play_bg_music(self):
+        pass
+
+    def stop_bg_music(self):
+        pass
+
+    def toggle_bg_music(self):
+        pass
+
+    def adjust_volume(self, delta):
+        pass
+
+    def play_ganar(self):
+        pass
+
+    def play_perder(self):
+        pass
+
+
+class SpriteManager:
+    def __init__(self, root):
+        pass
+
+
+class Terreno:
+    codigo = None
+
+    def permite_jugador(self):
+        pass
+
+    def permite_enemigo(self):
+        pass
+
+
+class Camino(Terreno):
+    codigo = None
+
+
+class Muro(Terreno):
+    codigo = None
+
+    def permite_jugador(self):
+        pass
+
+    def permite_enemigo(self):
+        pass
+
+
+class Liana(Terreno):
+    codigo = None
+
+    def permite_jugador(self):
+        pass
+
+    def permite_enemigo(self):
+        pass
+
+
+class Tunel(Terreno):
+    codigo = None
+
+    def permite_jugador(self):
+        pass
+
+    def permite_enemigo(self):
+        pass
+
+
+class Salida(Terreno):
+    codigo = None
+
+
+
+    def _colocar_terrenos_especiales(self):
+        pass
+
+    def casilla(self, f, c):
+        pass
+
+    def es_valido_jugador(self, f, c):
+        pass
+
+    def es_valido_enemigo(self, f, c):
+        pass
+
+    def siguiente_paso_enemigo(self, origen, destino):
+        pass
+
 class Mapa:
     def __init__(self, ancho, alto):
         self.ancho = ancho
@@ -82,6 +218,80 @@ class Mapa:
         for sr, sc in self.salidas:
             self.m[sr][sc] = SALIDA
 
+    def _colocar_terrenos_especiales(self):
+        pass
+
+    def casilla(self, f, c):
+        pass
+
+    def es_valido_jugador(self, f, c):
+        pass
+
+    def es_valido_enemigo(self, f, c):
+        pass
+
+    def siguiente_paso_enemigo(self, origen, destino):
+        pass
+
+
+
+
+
+class JuegoApp:
+    #  util GUI
+
+    def _center_root(self, width, height):
+        pass
+
+    def _on_configure(self, event):
+        pass
+
+    def mostrar_frame(self, frame):
+        pass
+
+    def _wrap_button(self, action):
+        pass
+
+    def _aplicar_fondo(self, frame):
+        pass
+
+    # ----------------- construcción pantallas -----------------
+
+    def _construir_menu_principal(self):
+        pass
+
+    def _construir_seleccion_modo(self):
+        pass
+
+    def _construir_pantalla_puntajes(self):
+        pass  
+
+    def _construir_pantalla_creditos(self):
+        pass
+
+    #  acciones de menú 
+
+    def _accion_puntajes(self):
+        pass
+
+    def _accion_creditos(self):
+        pass
+
+    def _volver_menu_principal(self):
+        pass
+
+    def _toggle_music(self):
+        pass
+
+    #  spawns y modos (sin crear enemigos, solo posiciones) 
+
+    def _spawn_en_corners(self, cantidad):
+        pass
+
+    #  puntajes (pantalla) 
+
+    def _actualizar_texto_puntajes(self):
+        pass
 
 # Menu 
 if __name__ == "__main__":
