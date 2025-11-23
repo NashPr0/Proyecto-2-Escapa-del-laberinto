@@ -210,6 +210,50 @@ class enemigo:
             self.stuck = 0
         else:
             self.stuck += 1
+    
+    #IA para huir del jugador (MODO CAZADOR)
+    def mover_huir(self, jugador_pos, mapa):
+        """
+        Mueve al enemigo tratando de alejarse del jugador.
+        - Busca entre los 4 vecinos válidos el que deje más lejos al jugador.
+        - Si está muy encerrado, usa un poco de aleatoriedad para no
+          quedarse rebotando siempre en el mismo lugar.
+        """
+        if not self.vivo:
+            return
+
+        jr, jc = jugador_pos
+        mejores = []
+        mejor_dist = -1
+
+        for dr, dc in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
+            nr, nc = self.fila + dr, self.col + dc
+            if not mapa.es_valido_enemigo(nr, nc):
+                continue
+            d = abs(nr - jr) + abs(nc - jc)
+            if d > mejor_dist:
+                mejor_dist = d
+                mejores = [(dr, dc)]
+            elif d == mejor_dist:
+                mejores.append((dr, dc))
+
+        if mejores:
+            dr, dc = random.choice(mejores)
+            self.fila += dr
+            self.col += dc
+            self.stuck = 0
+        else:
+            # No hay ningún movimiento que mejore: atasco
+            self.stuck += 1
+            if self.stuck >= 8:
+                dirs = [(-1, 0), (1, 0), (0, -1), (0, 1)]
+                random.shuffle(dirs)
+                for dr, dc in dirs:
+                    nr, nc = self.fila + dr, self.col + dc
+                    if mapa.es_valido_enemigo(nr, nc):
+                        self.fila, self.col = nr, nc
+                        self.stuck = 0
+                        break
 
 
 
