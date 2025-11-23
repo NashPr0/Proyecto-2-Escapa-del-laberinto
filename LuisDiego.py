@@ -22,5 +22,36 @@ class jugador:
         if self.energia < MAX_ENERGIA:
             self.energia = min(MAX_ENERGIA, self.energia + REGEN_ENERGIA)
     
+class enemigo:
+    """Esta clase se usa
+    para los dos modos, modo escapa y modo cazador.
+    La lógica de cuando persigue o huye está en JuegoApp,
+    aquí solo está el cómo se mueve y revive.
+    """
+    def __init__(self, fila, col, sprite_index=0,
+                 respawn_fila=None, respawn_col=None,
+                 respawn_delay=RESPAWN_ENEMIGO_SEG):
+        # Posición actual
+        self.fila = fila
+        self.col = col
+
+        # Índice del sprite (0..3)
+        self.sprite_index = sprite_index
+
+        # Estado de vida
+        self.vivo = True
+        self.respawn_delay = respawn_delay
+        self.tiempo_respawn = None
+
+        # Punto base de respawn
+        self.respawn_fila = respawn_fila if respawn_fila is not None else fila
+        self.respawn_col = respawn_col if respawn_col is not None else col
+
+        # Contador de atascos
+        self.stuck = 0
+
+        # Último lugar de respawn para no repetir siempre el mismo
+        self._ultimo_respawn = (fila, col)
+
 
     
