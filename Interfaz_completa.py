@@ -351,7 +351,6 @@ class JuegoApp:
 
         self._construir_menu_principal()
         self._construir_pantalla_juego()
-
         self.mostrar_frame(self.frame_menu)
 
 
@@ -364,7 +363,8 @@ class JuegoApp:
     def mostrar_frame(self, frame):
         for f in (self.frame_menu, self.frame_juego):
             f.pack_forget()
-        frame.pack(fill="both", expand=True) 
+        frame.pack(fill="both", expand=True)
+        
 
     def _wrap_button(self, action):
         pass
@@ -372,8 +372,7 @@ class JuegoApp:
     def _aplicar_fondo(self, frame):
         pass
 
-    # ----------------- construcción pantallas -----------------
-
+    #  construcción pantallas 
     def _construir_menu_principal(self):
         titulo = tk.Label(
             self.frame_menu,
@@ -408,15 +407,56 @@ class JuegoApp:
         )
         btn_salir.pack(pady=20)
     
-    def _construir_pantalla_juego(self):  ####
+    def iniciar_modo(self, modo):
+    
+        #Arranca una partida en el modo indicado
+        # Guardamos el modo actual
+        self.modo_actual = modo
+
+        # Actualizar etiqueta de modo si existe
+        if hasattr(self, "lbl_modo"):
+            self.lbl_modo.config(text=f"Modo: {modo.capitalize()}")
+
+        # Crear SIEMPRE un mapa nuevo
+        self.mapa = Mapa(ANCHO_MAPA, ALTO_MAPA)
+
+        # Dibujar el laberinto en el canvas
+        self.dibujar_mapa()
+
+        # Ir a la pantalla de juego
+        self.mostrar_frame(self.frame_juego)
+    
+    def _construir_pantalla_juego(self):
+        # Barra de info arriba
+        info_frame = tk.Frame(self.frame_juego, bg="#111111")
+        info_frame.pack(fill="x")
+
         self.lbl_modo = tk.Label(
-            self.frame_juego,
-            text="",
-            font=("Arial", 14),
+            info_frame,
+            text="Modo: -",
             fg="white",
-            bg="#000000"
+            bg="#111111",
+            font=("Arial", 12, "bold")
         )
-        self.lbl_modo.pack(pady=5)
+        self.lbl_modo.pack(side="left", padx=10, pady=5)
+
+        self.lbl_tiempo = tk.Label(
+            info_frame,
+            text="Tiempo: --",
+            fg="white",
+            bg="#111111",
+            font=("Arial", 12)
+        )
+        self.lbl_tiempo.pack(side="left", padx=10)
+
+        self.lbl_energia = tk.Label(
+            info_frame,
+            text="Energía: --",
+            fg="white",
+            bg="#111111",
+            font=("Arial", 12)
+        )
+        self.lbl_energia.pack(side="left", padx=10)
 
         # Canvas del mapa
         ancho_px = ANCHO_MAPA * TAM_CELDA
@@ -430,25 +470,14 @@ class JuegoApp:
         )
         self.canvas.pack(padx=10, pady=10)
 
+        # Botón volver al menú
         btn_volver = tk.Button(
             self.frame_juego,
             text="Volver al menú",
             command=lambda: self.mostrar_frame(self.frame_menu)
         )
         btn_volver.pack(pady=10)
-    
-    def iniciar_modo(self, modo):  ###
-        self.modo_actual = modo
-        self.lbl_modo.config(text=f"Modo: {modo.capitalize()}")
-
-        # se crea el mapa 
-        self.mapa = Mapa(ANCHO_MAPA, ALTO_MAPA)
-
-        self.dibujar_mapa()
-        self.mostrar_frame(self.frame_juego)
         
-    
-
     def dibujar_mapa(self):
         self.canvas.delete("all")
 
