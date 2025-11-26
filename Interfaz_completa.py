@@ -26,14 +26,72 @@ TIEMPO_PREVIEW = 5.0
 
 # Utilidades
 
+#def guardar_puntaje(nombre, modo, puntaje, gano, tiempo, archivo)
+#def leer_puntajes(archivo)
+#def top5_por_archivo(archivo)
+#def stats_por_jugador(nombre, archivo):
+    
 def guardar_puntaje(nombre, modo, puntaje, gano, tiempo, archivo):
-    pass
+    try:
+        with open(archivo, "a", encoding="utf-8") as f:
+            linea = f"{nombre};{modo};{puntaje};{1 if gano else 0};{int(tiempo)}\n"
+            f.write(linea)
+    except Exception as e:
+        print("Error guardando puntaje:", e)
+
+
 def leer_puntajes(archivo):
-    pass
+    if not os.path.exists(archivo):
+        return []
+    resultados = []
+    try:
+        with open(archivo, "r", encoding="utf-8") as f:
+            for linea in f:
+                linea = linea.strip()
+                if not linea:
+                    continue
+                partes = linea.split(";")
+                if len(partes) != 5:
+                    continue
+                nombre, modo, puntaje, gano, tiempo = partes
+                try:
+                    puntaje = int(puntaje)
+                    gano = bool(int(gano))
+                    tiempo = int(tiempo)
+                except ValueError:
+                    continue
+                resultados.append({
+                    "nombre": nombre,
+                    "modo": modo,
+                    "puntaje": puntaje,
+                    "gano": gano,
+                    "tiempo": tiempo
+                })
+    except Exception as e:
+        print("Error leyendo puntajes:", e)
+    return resultados
+
+
 def top5_por_archivo(archivo):
-    pass
+    datos = leer_puntajes(archivo)
+    datos.sort(key=lambda x: x["puntaje"], reverse=True)
+    return datos[:5]
+
+
 def stats_por_jugador(nombre, archivo):
-    pass
+    datos = leer_puntajes(archivo)
+    jugadas = [d for d in datos if d["nombre"].lower() == nombre.lower()]
+    if not jugadas:
+        return None
+    total = len(jugadas)
+    ganadas = sum(1 for j in jugadas if j["gano"])
+    mejor = max(jugadas, key=lambda j: j["puntaje"])
+    return {
+        "total": total,
+        "ganadas": ganadas,
+        "mejor_puntaje": mejor["puntaje"],
+        "mejor_tiempo": mejor["tiempo"]
+    }
 
 #_________________creacion de clases___________________
 # Manejo de sonido
@@ -582,9 +640,10 @@ class JuegoApp:
         btn_volver.pack(pady=20)
 
     def _construir_pantalla_puntajes(self):
-        self.frame_puntajes = tk.Frame(self.root, bg="#202020")
+        f = self.frame_puntajes
+
         titulo = tk.Label(
-            self.frame_puntajes,
+            f,
             text="Puntajes",
             font=("Arial", 18, "bold"),
             fg="white",
@@ -593,7 +652,7 @@ class JuegoApp:
         titulo.pack(pady=10)
 
         self.txt_puntajes = tk.Text(
-            self.frame_puntajes,
+            f,
             width=50,
             height=15,
             bg="#111111",
@@ -601,8 +660,15 @@ class JuegoApp:
         )
         self.txt_puntajes.pack(padx=10, pady=10)
 
+        btn_actualizar = tk.Button(
+            f,
+            text="Actualizar",
+            command=self._actualizar_texto_puntajes
+        )
+        btn_actualizar.pack(pady=5)
+
         btn_volver = tk.Button(
-            self.frame_puntajes,
+            f,
             text="Volver al menú",
             command=lambda: self.mostrar_frame(self.frame_menu)
         )
@@ -688,7 +754,31 @@ class JuegoApp:
     #  puntajes (pantalla) 
 
     def _actualizar_texto_puntajes(self):
-        pass
+        top_escapa = top5_por_archivo(ARCHIVO_PUNTAJES_ESCAPA)
+        top_cazador = top5_por_archivo(ARCHIVO_PUNTAJES_CAZADOR)
+
+        self.txt_puntajes.config(state="normal")
+        self.txt_puntajes.delete("1.0", "end")
+
+        self.txt_puntajes.insert("end", "TOP 5 Modo Escapa:\n")
+        if top_escapa:
+            for i, d in enumerate(top_escapa, start=1):
+                linea = f"{i}. {d['nombre']} - Puntaje: {d['puntaje']} - Tiempo: {d['tiempo']} s\n"
+                self.txt_puntajes.insert("end", linea)
+        else:
+            self.txt_puntajes.insert("end", "Sin puntajes registrados.\n")
+        self.txt_puntajes.insert("end", "\n")
+
+        self.txt_puntajes.insert("end", "TOP 5 Modo Cazador:\n")
+        if top_cazador:
+            for i, d in enumerate(top_cazador, start=1):
+                linea = f"{i}. {d['nombre']} - Puntaje: {d['puntaje']} - Tiempo: {d['tiempo']} s\n"
+                self.txt_puntajes.insert("end", linea)
+        else:
+            self.txt_puntajes.insert("end", "Sin puntajes registrados.\n")
+
+        self.txt_puntajes.config(state="disabled")
+
 
 # Menu 
 if __name__ == "__main__":
