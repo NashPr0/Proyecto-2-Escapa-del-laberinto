@@ -383,7 +383,13 @@ class JuegoApp:
             self.root.geometry(self._fixed_geometry)
 
     def mostrar_frame(self, frame):
-        for f in (self.frame_menu, self.frame_juego):
+        for f in (
+            self.frame_menu,
+            self.frame_seleccion_modo,
+            self.frame_juego,
+            self.frame_puntajes,
+            self.frame_creditos,
+        ):
             f.pack_forget()
         frame.pack(fill="both", expand=True)
         
