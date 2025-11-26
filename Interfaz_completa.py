@@ -98,50 +98,143 @@ class SoundManager:
       - sonidos de ganar / perder
     """
     def __init__(self):
-        pass
+        self.enabled = False
+        self.bg_playing = False
+        self.bg_music_path = None
+
+        try:
+            import pygame
+            self.pygame = pygame
+            pygame.mixer.init()
+            base_dir = os.path.dirname(os.path.abspath(__file__))
+
+            # Carga de efectos de sonido (busca .mp3, .wav, .ogg)
+            self.snd_boton = self._cargar_sonido_multi(base_dir, "sonido_boton")
+            self.snd_ganar = self._cargar_sonido_multi(base_dir, "sonido_ganar")
+            self.snd_perder = self._cargar_sonido_multi(base_dir, "sonido_perder")
+            self.snd_jugador_caminar = self._cargar_sonido_multi(base_dir, "sonido_jugador_caminata")
+            self.snd_jugador_muerte = self._cargar_sonido_multi(base_dir, "sonido_jugador_muerte")
+            self.snd_robot_caminar = self._cargar_sonido_multi(base_dir, "sonido_robot_caminata")
+            self.snd_robot_muerte = self._cargar_sonido_multi(base_dir, "sonido_robot_muerte")
+            self.snd_robot_regeneracion = self._cargar_sonido_multi(base_dir, "sonido_robot_regeneracion")
+
+            # Música de fondo
+            self.bg_music_path = self._buscar_archivo_multi(base_dir, "sonido_fondo")
+
+            self.enabled = True
+        except Exception as e:
+            print("Sonido desactivado:", e)
+            self.enabled = False
+
+    # utilidades internas 
 
     def _buscar_archivo_multi(self, base_dir, nombre_sin_ext):
-        pass
+        """Busca nombre_sin_ext con extensiones comunes de audio."""
+        for ext in (".mp3", ".wav", ".ogg"):
+            ruta = os.path.join(base_dir, nombre_sin_ext + ext)
+            if os.path.exists(ruta):
+                return ruta
+        return None
 
     def _cargar_sonido_multi(self, base_dir, nombre_sin_ext):
-        pass
+        """Carga un sonido si existe, o devuelve None."""
+        try:
+            ruta = self._buscar_archivo_multi(base_dir, nombre_sin_ext)
+            if ruta:
+                return self.pygame.mixer.Sound(ruta)
+        except Exception as e:
+            print(f"No se pudo cargar sonido {nombre_sin_ext}:", e)
+        return None
+
+    #  efectos varios
 
     def play_boton(self):
-        pass
+        if self.enabled and self.snd_boton:
+            self.snd_boton.play()
 
     def play_jugador_caminar(self):
-        pass
+        if self.enabled and self.snd_jugador_caminar:
+            self.snd_jugador_caminar.play()
 
     def play_jugador_muerte(self):
-        pass
+        if self.enabled and self.snd_jugador_muerte:
+            self.snd_jugador_muerte.play()
 
     def play_robot_caminar(self):
-        pass
+        if self.enabled and self.snd_robot_caminar:
+            self.snd_robot_caminar.play()
 
     def play_robot_muerte(self):
-        pass
+        if self.enabled and self.snd_robot_muerte:
+            self.snd_robot_muerte.play()
 
     def play_robot_regeneracion(self):
-        pass
+        if self.enabled and self.snd_robot_regeneracion:
+            self.snd_robot_regeneracion.play()
 
+    #  música de fondo 
     def play_bg_music(self):
-        pass
+        if not self.enabled or self.bg_playing or not self.bg_music_path:
+            return
+        try:
+            self.pygame.mixer.music.load(self.bg_music_path)
+            self.pygame.mixer.music.play(-1)
+            self.bg_playing = True
+        except Exception as e:
+            print("No se pudo reproducir música:", e)
 
     def stop_bg_music(self):
-        pass
+        if not self.enabled:
+            return
+        try:
+            self.pygame.mixer.music.stop()
+            self.bg_playing = False
+        except Exception as e:
+            print("No se pudo detener música:", e)
 
     def toggle_bg_music(self):
-        pass
+        if not self.enabled:
+            return
+        if self.bg_playing:
+            self.stop_bg_music()
+        else:
+            self.play_bg_music()
 
     def adjust_volume(self, delta):
-        pass
+        """Sube/baja volumen global de la música de fondo."""
+        if not self.enabled:
+            return
+        try:
+            vol = self.pygame.mixer.music.get_volume()
+            vol = min(1.0, max(0.0, vol + delta))
+            self.pygame.mixer.music.set_volume(vol)
+        except Exception as e:
+            print("No se pudo ajustar volumen:", e)
+
+    # ganar / perder
 
     def play_ganar(self):
-        pass
+        """
+        Sonido de victoria.
+        Se reproduce por encima de la música de fondo.
+        """
+        if not self.enabled:
+            return
+        if self.snd_ganar:
+            self.snd_ganar.play()
+        else:
+            print("Advertencia: snd_ganar no cargado.")
 
     def play_perder(self):
-        pass
-
+        """
+        Sonido de derrota.
+        """
+        if not self.enabled:
+            return
+        if self.snd_perder:
+            self.snd_perder.play()
+        else:
+            print("Advertencia: snd_perder no cargado.")
 
 class SpriteManager:
     def __init__(self, root):
