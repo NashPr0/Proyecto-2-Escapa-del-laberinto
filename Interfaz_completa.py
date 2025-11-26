@@ -403,7 +403,15 @@ class JuegoApp:
             self.frame_menu,
             text="Puntajes",
             width=20,
-            command=self._mostrar_pantalla_puntajes  # la creamos luego
+            command=self._mostrar_pantalla_puntajes  # la creamos 
+        )
+        btn_puntajes.pack(pady=10)
+
+        btn_puntajes = tk.Button(
+            self.frame_menu,
+            text="Creditos",
+            width=20,
+            command=self._mostrar_pantalla_creditos  # la creamos 
         )
         btn_puntajes.pack(pady=10)
 
@@ -586,7 +594,57 @@ class JuegoApp:
         self.mostrar_frame(self.frame_puntajes)
 
     def _construir_pantalla_creditos(self):
-        pass
+        self.frame_creditos = tk.Frame(self.root, bg="#202020")
+
+        titulo = tk.Label(
+            self.frame_creditos,
+            text="Créditos",
+            font=("Arial", 18, "bold"),
+            fg="white",
+            bg="#202020"
+        )
+        titulo.pack(pady=10)
+
+        texto = (
+            "Estudiante: Anthony Fabricio Montiel López\n"
+            "Curso: Introducción a la Programación\n"
+            "Institución: Tecnologico de Costa Rica \n"
+        )
+
+        lbl_texto = tk.Label(
+            self.frame_creditos,
+            text=texto,
+            fg="white",
+            bg="#202020",
+            justify="left"
+        )
+        lbl_texto.pack(padx=6.5, pady=6.5)
+
+        texto = (
+            "Estudiante: Anthony Fabricio Montiel López\n"
+            "Curso: Introducción a la Programación\n"
+            "Institución: Tecnologico de Costa Rica\n"
+        )
+
+        lbl_texto = tk.Label(
+            self.frame_creditos,
+            text=texto,
+            fg="white",
+            bg="#202020",
+            justify="left"
+        )
+        lbl_texto.pack(padx=13, pady=13)
+
+        btn_volver = tk.Button(
+            self.frame_creditos,
+            text="Volver al menú",
+            command=lambda: self.mostrar_frame(self.frame_menu)
+        )
+        btn_volver.pack(pady=10)
+
+
+    def _mostrar_pantalla_creditos(self): ####
+        self.mostrar_frame(self.frame_creditos)
 
     #  acciones de menú 
 
