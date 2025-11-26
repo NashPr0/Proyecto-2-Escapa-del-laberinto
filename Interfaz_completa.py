@@ -342,6 +342,11 @@ class JuegoApp:
         self.root.title("Laberinto: versión congelada")
         self.root.resizable(False, False)
 
+        width = ANCHO_MAPA * TAM_CELDA
+        height = ALTO_MAPA * TAM_CELDA + 80
+        self._fixed_geometry = None
+        self._center_root(width, height)
+
         self.mapa = None
         self.modo_actual = None
 
@@ -363,10 +368,19 @@ class JuegoApp:
 
 
     def _center_root(self, width, height):
-        pass
+        self.root.update_idletasks()
+        sw = self.root.winfo_screenwidth()
+        sh = self.root.winfo_screenheight()
+        x = (sw - width) // 2
+        y = (sh - height) // 2
+        geom = f"{width}x{height}+{x}+{y}"
+        self.root.geometry(geom)
+        self._fixed_geometry = geom
+        self.root.bind("<Configure>", self._on_configure)
 
     def _on_configure(self, event):
-        pass
+        if self._fixed_geometry and self.root.wm_geometry() != self._fixed_geometry:
+            self.root.geometry(self._fixed_geometry)
 
     def mostrar_frame(self, frame):
         for f in (self.frame_menu, self.frame_juego):
