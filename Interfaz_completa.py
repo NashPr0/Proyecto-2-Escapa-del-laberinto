@@ -399,7 +399,15 @@ class JuegoApp:
         )
         btn_jugar.pack(pady=10)
 
-        
+        btn_puntajes = tk.Button(
+            self.frame_menu,
+            text="Puntajes",
+            width=20,
+            command=self._mostrar_pantalla_puntajes  # la creamos luego
+        )
+        btn_puntajes.pack(pady=10)
+
+       
 
         btn_salir = tk.Button(
             self.frame_menu,
@@ -546,7 +554,36 @@ class JuegoApp:
         btn_volver.pack(pady=20)
 
     def _construir_pantalla_puntajes(self):
-        pass  
+        self.frame_puntajes = tk.Frame(self.root, bg="#202020")
+        titulo = tk.Label(
+            self.frame_puntajes,
+            text="Puntajes",
+            font=("Arial", 18, "bold"),
+            fg="white",
+            bg="#202020"
+        )
+        titulo.pack(pady=10)
+
+        self.txt_puntajes = tk.Text(
+            self.frame_puntajes,
+            width=50,
+            height=15,
+            bg="#111111",
+            fg="white"
+        )
+        self.txt_puntajes.pack(padx=10, pady=10)
+
+        btn_volver = tk.Button(
+            self.frame_puntajes,
+            text="Volver al menú",
+            command=lambda: self.mostrar_frame(self.frame_menu)
+        )
+        btn_volver.pack(pady=10)
+
+    def _mostrar_pantalla_puntajes(self): ###
+        self.txt_puntajes.delete("1.0", tk.END)
+        self.txt_puntajes.insert(tk.END, "Sistema de puntajes aún en construcción...\n")
+        self.mostrar_frame(self.frame_puntajes)
 
     def _construir_pantalla_creditos(self):
         pass
