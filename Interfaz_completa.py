@@ -504,11 +504,15 @@ class JuegoApp:
         self.frame_puntajes = tk.Frame(root, bg="#202020")
         self.frame_creditos = tk.Frame(root, bg="#202020")
 
+        self.sound = SoundManager()
+        self.sound.play_bg_music()
+
         self._construir_menu_principal()
         self._construir_seleccion_modo()
         self._construir_pantalla_juego()
         self._construir_pantalla_puntajes()
         self._construir_pantalla_creditos()
+        
         self.mostrar_frame(self.frame_menu) 
 
 
@@ -540,7 +544,11 @@ class JuegoApp:
         
 
     def _wrap_button(self, action):
-        pass
+       
+        def cmd():
+            self.sound.play_boton()
+            action()
+        return cmd
 
     def _aplicar_fondo(self, frame):
         pass
@@ -548,47 +556,64 @@ class JuegoApp:
     #  construcción pantallas 
     def _construir_menu_principal(self):
         titulo = tk.Label(
-        self.frame_menu,
-        text="LABERINTO",
-        font=("Arial", 24, "bold"),
-        fg="white",
-        bg="#202020"
+            self.frame_menu,
+            text="LABERINTO",
+            font=("Arial", 24, "bold"),
+            fg="white",
+            bg="#202020"
         )
         titulo.pack(pady=20)
 
-        btn_jugar = tk.Button(
+        # --- Botones principales ---
+        tk.Button(
             self.frame_menu,
             text="Jugar",
             width=20,
-            command=lambda: self.mostrar_frame(self.frame_seleccion_modo)
-        )
-        btn_jugar.pack(pady=10)
+            command=self._wrap_button(self._accion_jugar)
+        ).pack(pady=10)
 
-        btn_puntajes = tk.Button(
+        tk.Button(
             self.frame_menu,
             text="Puntajes",
             width=20,
-            command=self._mostrar_pantalla_puntajes  # la creamos 
-        )
-        btn_puntajes.pack(pady=10)
+            command=self._wrap_button(self._accion_puntajes)
+        ).pack(pady=10)
 
-        btn_puntajes = tk.Button(
+        tk.Button(
             self.frame_menu,
             text="Creditos",
             width=20,
-            command=self._mostrar_pantalla_creditos  # la creamos 
-        )
-        btn_puntajes.pack(pady=10)
+            command=self._wrap_button(self._accion_creditos)
+        ).pack(pady=10)
 
-       
-
-        btn_salir = tk.Button(
+        tk.Button(
             self.frame_menu,
             text="Salir",
             width=20,
             command=self.root.destroy
-        )
-        btn_salir.pack(pady=20)
+        ).pack(pady=20)
+
+        # --- Barra de sonido ---
+        sound_bar = tk.Frame(self.frame_menu, bg="#202020")
+        sound_bar.pack(pady=10)
+
+        tk.Button(
+            sound_bar,
+            text="Música ON/OFF",
+            command=self._wrap_button(self._toggle_music)
+        ).pack(side="left", padx=5)
+
+        tk.Button(
+            sound_bar,
+            text="Vol +",
+            command=self._wrap_button(lambda: self.sound.adjust_volume(+0.1))
+        ).pack(side="left", padx=5)
+
+        tk.Button(
+            sound_bar,
+            text="Vol -",
+            command=self._wrap_button(lambda: self.sound.adjust_volume(-0.1))
+        ).pack(side="left", padx=5)
     
     def iniciar_modo(self, modo):
     
@@ -726,6 +751,8 @@ class JuegoApp:
         )
         btn_volver.pack(pady=20)
 
+        
+
     def _accion_jugar(self):
         # Pedir nombre del jugador
         nombre = simpledialog.askstring(
@@ -784,7 +811,7 @@ class JuegoApp:
         self._aplicar_fondo(f)
 
         btn_volver = tk.Button(
-            f, text="← Volver",
+            f, text=" Volver",
             command=self._wrap_button(self._volver_menu_principal)
         )
         btn_volver.place(x=10, y=10)
@@ -842,7 +869,7 @@ class JuegoApp:
         self.mostrar_frame(self.frame_menu) 
 
     def _toggle_music(self):
-        pass
+        self.sound.toggle_bg_music()
 
     #  spawns y modos (sin crear enemigos, solo posiciones) 
 
