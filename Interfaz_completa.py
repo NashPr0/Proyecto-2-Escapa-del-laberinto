@@ -347,11 +347,19 @@ class JuegoApp:
 
         # Frames
         self.frame_menu = tk.Frame(root, bg="#202020")
+        self.frame_seleccion_modo = tk.Frame(root, bg="#202020")
+        self.frame_juego = tk.Frame(root, bg="#000000") 
+        self.frame_menu = tk.Frame(root, bg="#202020")
         self.frame_juego = tk.Frame(root, bg="#000000")
+        self.frame_puntajes = tk.Frame(root, bg="#202020")
+        self.frame_creditos = tk.Frame(root, bg="#202020")
 
         self._construir_menu_principal()
+        self._construir_seleccion_modo()
         self._construir_pantalla_juego()
-        self.mostrar_frame(self.frame_menu)
+        self._construir_pantalla_puntajes()
+        self._construir_pantalla_creditos()
+        self.mostrar_frame(self.frame_menu) 
 
 
     def _center_root(self, width, height):
@@ -375,29 +383,23 @@ class JuegoApp:
     #  construcción pantallas 
     def _construir_menu_principal(self):
         titulo = tk.Label(
-            self.frame_menu,
-            text="LABERINTO",
-            font=("Arial", 24, "bold"),
-            fg="white",
-            bg="#202020"
+        self.frame_menu,
+        text="LABERINTO",
+        font=("Arial", 24, "bold"),
+        fg="white",
+        bg="#202020"
         )
         titulo.pack(pady=20)
 
-        btn_cazador = tk.Button(
+        btn_jugar = tk.Button(
             self.frame_menu,
-            text="Modo Cazador",
+            text="Jugar",
             width=20,
-            command=lambda: self.iniciar_modo("cazador")
+            command=lambda: self.mostrar_frame(self.frame_seleccion_modo)
         )
-        btn_cazador.pack(pady=10)
+        btn_jugar.pack(pady=10)
 
-        btn_escapa = tk.Button(
-            self.frame_menu,
-            text="Modo Escapa",
-            width=20,
-            command=lambda: self.iniciar_modo("escapa")
-        )
-        btn_escapa.pack(pady=10)
+        
 
         btn_salir = tk.Button(
             self.frame_menu,
@@ -412,18 +414,10 @@ class JuegoApp:
         #Arranca una partida en el modo indicado
         # Guardamos el modo actual
         self.modo_actual = modo
-
-        # Actualizar etiqueta de modo si existe
         if hasattr(self, "lbl_modo"):
             self.lbl_modo.config(text=f"Modo: {modo.capitalize()}")
-
-        # Crear SIEMPRE un mapa nuevo
         self.mapa = Mapa(ANCHO_MAPA, ALTO_MAPA)
-
-        # Dibujar el laberinto en el canvas
         self.dibujar_mapa()
-
-        # Ir a la pantalla de juego
         self.mostrar_frame(self.frame_juego)
     
     def _construir_pantalla_juego(self):
@@ -518,7 +512,38 @@ class JuegoApp:
             outline="#00FF00"
         )
     def _construir_seleccion_modo(self):
-        pass
+        titulo = tk.Label(
+        self.frame_seleccion_modo,
+        text="Selecciona el modo",
+        font=("Arial", 18, "bold"),
+        fg="white",
+        bg="#202020"
+        )
+        titulo.pack(pady=20)
+
+        btn_cazador = tk.Button(
+            self.frame_seleccion_modo,
+            text="Modo Cazador",
+            width=20,
+            command=lambda: self.iniciar_modo("cazador")
+        )
+        btn_cazador.pack(pady=10)
+
+        btn_escapa = tk.Button(
+            self.frame_seleccion_modo,
+            text="Modo Escapa",
+            width=20,
+            command=lambda: self.iniciar_modo("escapa")
+        )
+        btn_escapa.pack(pady=10)
+
+        btn_volver = tk.Button(
+            self.frame_seleccion_modo,
+            text="Volver al menú",
+            width=20,
+            command=lambda: self.mostrar_frame(self.frame_menu)
+        )
+        btn_volver.pack(pady=20)
 
     def _construir_pantalla_puntajes(self):
         pass  
