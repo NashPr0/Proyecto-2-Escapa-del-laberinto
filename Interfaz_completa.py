@@ -25,12 +25,6 @@ ARCHIVO_PUNTAJES_ESCAPA  = "puntajes_escapa.txt"
 TIEMPO_PREVIEW = 5.0
 
 # Utilidades
-
-#def guardar_puntaje(nombre, modo, puntaje, gano, tiempo, archivo)
-#def leer_puntajes(archivo)
-#def top5_por_archivo(archivo)
-#def stats_por_jugador(nombre, archivo):
-    
 def guardar_puntaje(nombre, modo, puntaje, gano, tiempo, archivo):
     try:
         with open(archivo, "a", encoding="utf-8") as f:
@@ -639,6 +633,19 @@ class JuegoApp:
         )
         btn_volver.pack(pady=20)
 
+    def _accion_jugar(self):
+        # Pedir nombre del jugador
+        nombre = simpledialog.askstring(
+            "Nombre",
+            "Ingresa tu nombre:",
+            parent=self.root
+        )
+        if not nombre:
+            # Si cancela o deja vacío, volvemos al menú
+            return
+        self.nombre_jugador = nombre.strip()
+        self.mostrar_frame(self.frame_seleccion_modo)
+
     def _construir_pantalla_puntajes(self):
         f = self.frame_puntajes
 
@@ -680,53 +687,50 @@ class JuegoApp:
         self.mostrar_frame(self.frame_puntajes)
 
     def _construir_pantalla_creditos(self):
-        self.frame_creditos = tk.Frame(self.root, bg="#202020")
-
-        titulo = tk.Label(
-            self.frame_creditos,
-            text="Créditos",
-            font=("Arial", 18, "bold"),
-            fg="white",
-            bg="#202020"
-        )
-        titulo.pack(pady=10)
-
-        texto = (
-            "Estudiante: Anthony Fabricio Montiel López\n"
-            "Curso: Introducción a la Programación\n"
-            "Institución: Tecnologico de Costa Rica \n"
-        )
-
-        lbl_texto = tk.Label(
-            self.frame_creditos,
-            text=texto,
-            fg="white",
-            bg="#202020",
-            justify="left"
-        )
-        lbl_texto.pack(padx=6.5, pady=6.5)
-
-        texto = (
-            "Estudiante: Anthony Fabricio Montiel López\n"
-            "Curso: Introducción a la Programación\n"
-            "Institución: Tecnologico de Costa Rica\n"
-        )
-
-        lbl_texto = tk.Label(
-            self.frame_creditos,
-            text=texto,
-            fg="white",
-            bg="#202020",
-            justify="left"
-        )
-        lbl_texto.pack(padx=13, pady=13)
+        f = self.frame_creditos
+        self._aplicar_fondo(f)
 
         btn_volver = tk.Button(
-            self.frame_creditos,
-            text="Volver al menú",
-            command=lambda: self.mostrar_frame(self.frame_menu)
+            f, text="← Volver",
+            command=self._wrap_button(self._volver_menu_principal)
         )
-        btn_volver.pack(pady=10)
+        btn_volver.place(x=10, y=10)
+
+        titulo = tk.Label(
+            f,
+            text="Créditos",
+            font=("Arial", 24, "bold"),
+            bg="#202020",
+            fg="white"
+        )
+        titulo.pack(pady=30)
+
+        contenedor = tk.Frame(f, bg="#202020")
+        contenedor.pack()
+
+        col1 = tk.Frame(contenedor, bg="#202020")
+        col1.grid(row=0, column=0, padx=40)
+
+        tk.Label(col1, text="Montiel Anthony", font=("Arial", 16),
+                 bg="#202020", fg="white").pack()
+        tk.Label(col1, text="Carne: 2025132603",
+                 bg="#202020", fg="white").pack()
+        tk.Label(col1, text="Carrera: Ing. en Computadores",
+                 bg="#202020", fg="white").pack()
+        tk.Label(col1, text="Curso: Intro a la Programación",
+                 bg="#202020", fg="white").pack()
+
+        col2 = tk.Frame(contenedor, bg="#202020")
+        col2.grid(row=0, column=1, padx=40)
+
+        tk.Label(col2, text="Murillo Luis", font=("Arial", 16),
+                 bg="#202020", fg="white").pack()
+        tk.Label(col2, text="Carne: 00000000",
+                 bg="#202020", fg="white").pack()
+        tk.Label(col2, text="Carrera: Ing. en Computadores",
+                 bg="#202020", fg="white").pack()
+        tk.Label(col2, text="Curso: Intro a la Programación",
+                 bg="#202020", fg="white").pack()
 
 
     def _mostrar_pantalla_creditos(self): ####
@@ -734,14 +738,15 @@ class JuegoApp:
 
     #  acciones de menú 
 
-    def _accion_puntajes(self):
-        pass
+    def _accion_puntajes(self): #
+        self._actualizar_texto_puntajes() #
+        self.mostrar_frame(self.frame_puntajes) 
 
-    def _accion_creditos(self):
-        pass
+    def _accion_creditos(self): #
+         self.mostrar_frame(self.frame_creditos)
 
-    def _volver_menu_principal(self):
-        pass
+    def _volver_menu_principal(self): # 
+        self.mostrar_frame(self.frame_menu) 
 
     def _toggle_music(self):
         pass
