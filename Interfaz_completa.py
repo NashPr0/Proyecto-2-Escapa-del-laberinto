@@ -544,7 +544,33 @@ class JuegoApp:
         self.frame_juego = tk.Frame(root, bg="#000000") 
         self.frame_puntajes = tk.Frame(root, bg="#202020")
         self.frame_creditos = tk.Frame(root, bg="#202020")
+        
+        self.canvas = tk.Canvas(
+            self.frame_juego,
+            width=ANCHO_MAPA * TAM_CELDA,
+            height=ALTO_MAPA * TAM_CELDA,
+            bg="black"
+        )
+        self.canvas.pack()
 
+        info_bar = tk.Frame(self.frame_juego, bg="#000000")
+        info_bar.pack(fill="x")
+
+        self.lbl_info = tk.Label(info_bar, text="", bg="#000000", fg="white")
+        self.lbl_info.pack(side="left", padx=5, pady=5)
+
+        self.btn_music = tk.Button(
+            info_bar,
+            text="Música: ON",
+            command=self._toggle_music
+        )
+        self.btn_music.pack(side="right", padx=5)
+
+        self.btn_volver_fin = tk.Button(
+            self.frame_juego,
+            text="Volver al menú",
+            command=self._volver_menu_principal
+        )
         
         self._construir_menu_principal()
         self._construir_seleccion_modo()
@@ -608,7 +634,10 @@ class JuegoApp:
             fg="white",
             bg="#202020"
         )
-        titulo.pack(pady=20)
+        titulo.place(relx=0.5, rely=0.18, anchor="center")
+
+        cont = tk.Frame(f, bg="#202020")
+        cont.place(relx=0.5, rely=0.5, anchor="center")
 
         # Botones principales
         tk.Button(
@@ -661,16 +690,34 @@ class JuegoApp:
             command=self._wrap_button(lambda: self.sound.adjust_volume(-0.1))
         ).pack(side="left", padx=5)
     
-    def iniciar_modo(self, modo):
-    
-        #Arranca una partida en el modo indicado
-        # Guardamos el modo actual
-        self.modo_actual = modo
-        if hasattr(self, "lbl_modo"):
-            self.lbl_modo.config(text=f"Modo: {modo.capitalize()}")
-        self.mapa = Mapa(ANCHO_MAPA, ALTO_MAPA)
-        self.dibujar_mapa()
-        self.mostrar_frame(self.frame_juego)
+    def _construir_seleccion_modo(self):
+
+        f = self.frame_seleccion_modo
+        self._aplicar_fondo(f)
+
+        titulo = tk.Label(
+            f,
+            text="Seleccione modo de juego",
+            font=("Arial", 20, "bold"),
+            bg="#202020",
+            fg="white"
+        )
+        titulo.pack(pady=30)
+
+        tk.Button(
+            f, text="Modo Cazador", width=20,
+            command=self._wrap_button(lambda: self.iniciar_modo("cazador"))
+        ).pack(pady=10)
+
+        tk.Button(
+            f, text="Modo Escapa", width=20,
+            command=self._wrap_button(lambda: self.iniciar_modo("escapa"))
+        ).pack(pady=10)
+
+        tk.Button(
+            f, text="Volver", width=12,
+            command=self._wrap_button(self._volver_menu_principal)
+        ).pack(pady=20)
     
     def _construir_pantalla_juego(self):
         # Barra de info arriba
