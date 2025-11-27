@@ -1,4 +1,4 @@
-import random
+
 #CONSTANTES DE JUGADOR Y ENEMIGOS
 MAX_ENERGIA = 10
 COSTO_CORRER = 3
@@ -211,8 +211,8 @@ class enemigo:
             self.stuck = 0
         else:
             self.stuck += 1
-    
-    #IA para huir del jugador (MODO CAZADOR)
+
+    #IA para huir (MODOD ESCAPA)
     def mover_huir(self, jugador_pos, mapa):
         """
         Mueve al enemigo tratando de alejarse del jugador.
@@ -256,45 +256,20 @@ class enemigo:
                         self.stuck = 0
                         break
 
+ 
+
+   
+
 class JuegoApp:
-    def __init__(self, root):
-        pass
-
-
-
-
-
-
-
-
-
-    #Spawns y modos
-    def _corner_positions(self):
-        entrada = self.mapa.entrada
-        cr = self.mapa.alto // 2
-        cc = self.mapa.ancho // 2
-        candidatos = [
-            (cr - 2, cc - 2),
-            (cr - 2, cc + 2),
-            (cr + 2, cc - 2),
-            (cr + 2, cc + 2),
-        ]
-        posiciones = []
-        for f, c in candidatos:
-            if not (0 <= f < self.mapa.alto and 0 <= c < self.mapa.ancho):
-                continue
-            if (f, c) == entrada:
-                continue
-            if self.mapa.es_valido_enemigo(f, c):
-                if abs(f - entrada[0]) + abs(c - entrada[1]) >= 7:
-                    posiciones.append((f, c))
-        return posiciones
-
-    def _spawn_en_corners(self, cantidad):
-        corners = self._corner_positions()
-        random.shuffle(corners)
-        return corners[:cantidad]
-    
+   def __init__(self, mapa, sound_manager, modo):
+        self.mapa = mapa
+        self.sound = sound_manager
+        self.modo = modo.lower()  
+        er, ec = self.mapa.entrada
+        self.player = jugador(er, ec)
+        self.enemigos = self._spawn_enemigos(4)
+        self.tiempo_inicio = time.time()
+        
 
 
 
