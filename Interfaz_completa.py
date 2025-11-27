@@ -238,7 +238,38 @@ class SoundManager:
 
 class SpriteManager:
     def __init__(self, root):
-        pass
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+
+        def load_gif(nombre):
+            ruta = os.path.join(base_dir, nombre + ".gif")
+            if os.path.exists(ruta):
+                return tk.PhotoImage(master=root, file=ruta)
+            return None
+
+        def scale(img):
+            if not img:
+                return None
+            w, h = img.width(), img.height()
+            sx = max(1, w // TAM_CELDA)
+            sy = max(1, h // TAM_CELDA)
+            if sx > 1 or sy > 1:
+                img = img.subsample(sx, sy)
+            return img
+
+        self.img_suelo = scale(load_gif("suelo"))
+        self.img_muro = scale(load_gif("Muros"))
+        self.img_liana = scale(load_gif("Lianas"))
+        self.img_trampa = scale(load_gif("Trampas"))
+        self.img_puerta = scale(load_gif("puerta"))
+        self.img_jugador = scale(load_gif("Jugador"))
+        self.img_tunel = scale(load_gif("Tunel"))
+
+        self.img_enemigos = [
+            scale(load_gif("enemigo1")),
+            scale(load_gif("enemigo2")),
+            scale(load_gif("enemigo3")),
+            scale(load_gif("enemigo4")),
+        ]
 
 # CLASES DE TERRENO
 
@@ -495,6 +526,17 @@ class JuegoApp:
         self.mapa = None
         self.modo_actual = None
 
+        self.sound = SoundManager()
+        self.sound.play_bg_music()
+        self.sprites = SpriteManager(root) 
+        
+        #lectura de archivos para fondo 
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        ruta_fondo = os.path.join(base_dir, "Fondo_Inicio.gif")
+        self.img_fondo_inicio = None
+        if os.path.exists(ruta_fondo):
+            self.img_fondo_inicio = tk.PhotoImage(master=root, file=ruta_fondo)
+
         # Frames
         self.frame_menu = tk.Frame(root, bg="#202020")
         self.frame_seleccion_modo = tk.Frame(root, bg="#202020")
@@ -504,8 +546,7 @@ class JuegoApp:
         self.frame_puntajes = tk.Frame(root, bg="#202020")
         self.frame_creditos = tk.Frame(root, bg="#202020")
 
-        self.sound = SoundManager()
-        self.sound.play_bg_music()
+        
 
         self._construir_menu_principal()
         self._construir_seleccion_modo()
