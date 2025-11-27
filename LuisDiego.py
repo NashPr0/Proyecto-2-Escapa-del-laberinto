@@ -159,14 +159,6 @@ class enemigo:
     
     #IA QUE PERSIGUE AL JUGADOR (MODO ESCAPA)
     def mover_hacia(self, destino, mapa):
-        """
-        Mueve al enemigo un paso hacia 'destino'.
-        - Usa BFS del mapa para encontrar el mejor paso.
-        - Si BFS no ofrece movimiento (df,dc == 0), intenta "rodear"
-          el obstáculo probando un movimiento local que acerque.
-        - Si se atasca muchas veces, hace un movimiento aleatorio válido
-          para tratar de salir del hueco.
-        """
         if not self.vivo:
             return
 
@@ -174,64 +166,68 @@ class enemigo:
         df, dc = mapa.siguiente_paso_enemigo(origen, destino)
 
         if df == 0 and dc == 0:
-            # No hay paso directo -> heurística local
+
             of, oc = origen
-            df_mejor, dc_mejor = 0, 0
+            mejor_df, mejor_dc = 0, 0
             dist_actual = abs(of - destino[0]) + abs(oc - destino[1])
-            for dr, dc2 in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
-                nf, nc = of + dr, oc + dc2
+
+            for dr, dc2 in [(-1,0),(1,0),(0,-1),(0,1)]:
+                nf = of + dr
+                nc = oc + dc2
                 if not mapa.es_valido_enemigo(nf, nc):
                     continue
-                d = abs(nf - destino[0]) + abs(nc - destino[1])
-                if d < dist_actual:
-                    df_mejor, dc_mejor = dr, dc2
-                    dist_actual = d
+                dist = abs(nf - destino[0]) + abs(nc - destino[1])
+                if dist < dist_actual:
+                    mejor_df, mejor_dc = dr, dc2
+                    dist_actual = dist
 
-            if df_mejor != 0 or dc_mejor != 0:
-                df, dc = df_mejor, dc_mejor
-
+            if mejor_df != 0 or mejor_dc != 0:
+                df, dc = mejor_df, mejor_dc
         if df == 0 and dc == 0:
-            # Seguimos sin salida, contamos como atasco
             self.stuck += 1
+
             if self.stuck >= 10:
-                dirs = [(-1, 0), (1, 0), (0, -1), (0, 1)]
+                dirs = [(-1,0),(1,0),(0,-1),(0,1)]
                 random.shuffle(dirs)
                 for dr, dc2 in dirs:
-                    nf, nc = self.fila + dr, self.col + dc2
+                    nf = self.fila + dr
+                    nc = self.col + dc2
                     if mapa.es_valido_enemigo(nf, nc):
-                        self.fila, self.col = nf, nc
+                        self.fila = nf
+                        self.col = nc
                         self.stuck = 0
                         return
             return
-
+        
         nf = self.fila + df
         nc = self.col + dc
+
         if mapa.es_valido_enemigo(nf, nc):
-            self.fila, self.col = nf, nc
+            self.fila = nf
+            self.col = nc
             self.stuck = 0
         else:
             self.stuck += 1
 
     #IA para huir (MODOD ESCAPA)
-    def mover_huir(self, jugador_pos, mapa):
-        """
-        Mueve al enemigo tratando de alejarse del jugador.
-        - Busca entre los 4 vecinos válidos el que deje más lejos al jugador.
-        - Si está muy encerrado, usa un poco de aleatoriedad para no
-          quedarse rebotando siempre en el mismo lugar.
-        """
+   def mover_huir(self, jugador_pos, mapa):
+
         if not self.vivo:
             return
 
         jr, jc = jugador_pos
-        mejores = []
         mejor_dist = -1
+        mejores = []
 
-        for dr, dc in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
-            nr, nc = self.fila + dr, self.col + dc
+        # buscar casilla que lo deje MÁS LEJOS del jugador
+        for dr, dc in [(-1,0),(1,0),(0,-1),(0,1)]:
+            nr = self.fila + dr
+            nc = self.col + dc
             if not mapa.es_valido_enemigo(nr, nc):
                 continue
+
             d = abs(nr - jr) + abs(nc - jc)
+
             if d > mejor_dist:
                 mejor_dist = d
                 mejores = [(dr, dc)]
@@ -244,15 +240,17 @@ class enemigo:
             self.col += dc
             self.stuck = 0
         else:
-            # No hay ningún movimiento que mejore: atasco
+            # movimiento aleatorio para evitar atasco
             self.stuck += 1
             if self.stuck >= 8:
-                dirs = [(-1, 0), (1, 0), (0, -1), (0, 1)]
+                dirs = [(-1,0),(1,0),(0,-1),(0,1)]
                 random.shuffle(dirs)
                 for dr, dc in dirs:
-                    nr, nc = self.fila + dr, self.col + dc
+                    nr = self.fila + dr
+                    nc = self.col + dc
                     if mapa.es_valido_enemigo(nr, nc):
-                        self.fila, self.col = nr, nc
+                        self.fila = nr
+                        self.col = nc
                         self.stuck = 0
                         break
 
