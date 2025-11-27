@@ -830,6 +830,15 @@ class JuegoApp:
 
         self.lbl_info = tk.Label(info_bar, text="", bg="#000000", fg="white")
         self.lbl_info.pack(side="left", padx=5, pady=5)
+        
+        ###actualizacion final.
+
+        self.btn_salir_juego = tk.Button(
+            info_bar,
+            text="volver al menu juego",
+            command=self._wrap_button(self._volver_menu_principal)
+        )
+        self.btn_salir_juego.pack(side="right", padx=5) 
 
         self.btn_music = tk.Button(
             info_bar,
@@ -1056,6 +1065,14 @@ class JuegoApp:
     def _toggle_music(self):
         self.sound.toggle_bg_music()
         self.btn_music.config(text=f"Música: {'ON' if self.sound.bg_playing else 'OFF'}")
+    
+    def _salir_del_juego(self):
+        """Salir completamente del juego desde modo cazador / escapa."""
+        try:
+            self.sound.stop_bg_music()
+        except Exception:
+            pass
+        self.root.destroy()  # cierra la ventana principal
 
     # spawns y modos 
 
