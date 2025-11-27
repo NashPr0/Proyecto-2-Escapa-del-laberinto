@@ -523,13 +523,10 @@ class JuegoApp:
         self._fixed_geometry = None
         self._center_root(width, height)
 
-        self.mapa = None
-        self.modo_actual = None
-
         self.sound = SoundManager()
         self.sound.play_bg_music()
         self.sprites = SpriteManager(root) 
-        
+
         #lectura de archivos para fondo 
         base_dir = os.path.dirname(os.path.abspath(__file__))
         ruta_fondo = os.path.join(base_dir, "Fondo_Inicio.gif")
@@ -537,24 +534,24 @@ class JuegoApp:
         if os.path.exists(ruta_fondo):
             self.img_fondo_inicio = tk.PhotoImage(master=root, file=ruta_fondo)
 
+        
+        self.mapa = None
+        self.modo_actual = None
+
         # Frames
-        self.frame_menu = tk.Frame(root, bg="#202020")
+        self.frame_menu_principal = tk.Frame(root, bg="#202020")
         self.frame_seleccion_modo = tk.Frame(root, bg="#202020")
         self.frame_juego = tk.Frame(root, bg="#000000") 
-        self.frame_menu = tk.Frame(root, bg="#202020")
-        self.frame_juego = tk.Frame(root, bg="#000000")
         self.frame_puntajes = tk.Frame(root, bg="#202020")
         self.frame_creditos = tk.Frame(root, bg="#202020")
 
         
-
         self._construir_menu_principal()
         self._construir_seleccion_modo()
-        self._construir_pantalla_juego()
         self._construir_pantalla_puntajes()
         self._construir_pantalla_creditos()
         
-        self.mostrar_frame(self.frame_menu) 
+        self.mostrar_frame(self.frame_menu_principal)  
 
 
     def _center_root(self, width, height):
@@ -574,7 +571,7 @@ class JuegoApp:
 
     def mostrar_frame(self, frame):
         for f in (
-            self.frame_menu,
+            self.frame_menu_principal,
             self.frame_seleccion_modo,
             self.frame_juego,
             self.frame_puntajes,
@@ -592,12 +589,20 @@ class JuegoApp:
         return cmd
 
     def _aplicar_fondo(self, frame):
-        pass
+        if self.img_fondo_inicio:
+            lbl = tk.Label(frame, image=self.img_fondo_inicio)
+            lbl.place(x=0, y=0, relwidth=1, relheight=1)
 
     #  construcción pantallas 
     def _construir_menu_principal(self):
+        f = self.frame_menu_principal
+        self._aplicar_fondo(f)
+
+        btn_salir = tk.Button(f, text="Salir", command=self._wrap_button(self.root.destroy))
+        btn_salir.place(x=10, y=10) 
+
         titulo = tk.Label(
-            self.frame_menu,
+            self.frame_menu_principal,
             text="LABERINTO",
             font=("Arial", 24, "bold"),
             fg="white",
@@ -605,37 +610,37 @@ class JuegoApp:
         )
         titulo.pack(pady=20)
 
-        # --- Botones principales ---
+        # Botones principales
         tk.Button(
-            self.frame_menu,
+            self.frame_menu_principal,
             text="Jugar",
             width=20,
             command=self._wrap_button(self._accion_jugar)
         ).pack(pady=10)
 
         tk.Button(
-            self.frame_menu,
+            self.frame_menu_principal,
             text="Puntajes",
             width=20,
             command=self._wrap_button(self._accion_puntajes)
         ).pack(pady=10)
 
         tk.Button(
-            self.frame_menu,
+            self.frame_menu_principal,
             text="Creditos",
             width=20,
             command=self._wrap_button(self._accion_creditos)
         ).pack(pady=10)
 
         tk.Button(
-            self.frame_menu,
+            self.frame_menu_principal,
             text="Salir",
             width=20,
             command=self.root.destroy
         ).pack(pady=20)
 
         # --- Barra de sonido ---
-        sound_bar = tk.Frame(self.frame_menu, bg="#202020")
+        sound_bar = tk.Frame(self.frame_menu_principal, bg="#202020")
         sound_bar.pack(pady=10)
 
         tk.Button(
@@ -715,7 +720,7 @@ class JuegoApp:
         btn_volver = tk.Button(
             self.frame_juego,
             text="Volver al menú",
-            command=lambda: self.mostrar_frame(self.frame_menu)
+            command=lambda: self.mostrar_frame(self.frame_menu_principal)
         )
         btn_volver.pack(pady=10)
         
@@ -788,7 +793,7 @@ class JuegoApp:
             self.frame_seleccion_modo,
             text="Volver al menú",
             width=20,
-            command=lambda: self.mostrar_frame(self.frame_menu)
+            command=lambda: self.mostrar_frame(self.frame_menu_principal)
         )
         btn_volver.pack(pady=20)
 
@@ -838,7 +843,7 @@ class JuegoApp:
         btn_volver = tk.Button(
             f,
             text="Volver al menú",
-            command=lambda: self.mostrar_frame(self.frame_menu)
+            command=lambda: self.mostrar_frame(self.frame_menu_principal)
         )
         btn_volver.pack(pady=10)
 
@@ -907,7 +912,7 @@ class JuegoApp:
          self.mostrar_frame(self.frame_creditos)
 
     def _volver_menu_principal(self): # 
-        self.mostrar_frame(self.frame_menu) 
+        self.mostrar_frame(self.frame_menu_principal) 
 
     def _toggle_music(self):
         self.sound.toggle_bg_music()
