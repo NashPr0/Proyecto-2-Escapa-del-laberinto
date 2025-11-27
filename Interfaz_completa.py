@@ -6,7 +6,9 @@ import time
 import os
 from collections import deque
 
+# ============================================================
 # CONSTANTES GENERALES
+# ============================================================
 
 CAMINO = 0
 MURO = 1
@@ -14,17 +16,34 @@ LIANA = 2
 TUNEL = 3
 SALIDA = 4
 
+MAX_ENERGIA = 10
+COSTO_CORRER = 3
+REGEN_ENERGIA = 1
+
+MAX_TRAMPAS = 3
+COOLDOWN_TRAMPA = 5.0
+RESPAWN_ENEMIGO_SEG = 10.0
+
+DURACION_PARTIDA_CAZADOR = 60
+DURACION_PARTIDA_ESCAPA = 60
+
+ARCHIVO_PUNTAJES_CAZADOR = "puntajes_cazador.txt"
+ARCHIVO_PUNTAJES_ESCAPA = "puntajes_escapa.txt"
+
 TAM_CELDA = 32
+
+PLAYER_INTERVAL = 0.4  # base para calcular la velocidad
 
 ANCHO_MAPA = 23
 ALTO_MAPA = 15
 
-ARCHIVO_PUNTAJES_CAZADOR = "puntajes_cazador.txt"
-ARCHIVO_PUNTAJES_ESCAPA  = "puntajes_escapa.txt"
-
 TIEMPO_PREVIEW = 5.0
 
-# Utilidades
+
+# ============================================================
+# UTILIDADES PUNTAJES
+# ============================================================
+
 def guardar_puntaje(nombre, modo, puntaje, gano, tiempo, archivo):
     try:
         with open(archivo, "a", encoding="utf-8") as f:
@@ -87,8 +106,10 @@ def stats_por_jugador(nombre, archivo):
         "mejor_tiempo": mejor["tiempo"]
     }
 
-#_________________creacion de clases___________________
-# Manejo de sonido
+
+# ============================================================
+# MANEJO DE SONIDO
+# ============================================================
 
 class SoundManager:
     """
@@ -126,7 +147,7 @@ class SoundManager:
             print("Sonido desactivado:", e)
             self.enabled = False
 
-    # utilidades internas 
+    # ---------- utilidades internas ----------
 
     def _buscar_archivo_multi(self, base_dir, nombre_sin_ext):
         """Busca nombre_sin_ext con extensiones comunes de audio."""
@@ -146,7 +167,7 @@ class SoundManager:
             print(f"No se pudo cargar sonido {nombre_sin_ext}:", e)
         return None
 
-    #  efectos varios
+    # ---------- efectos varios ----------
 
     def play_boton(self):
         if self.enabled and self.snd_boton:
@@ -172,7 +193,8 @@ class SoundManager:
         if self.enabled and self.snd_robot_regeneracion:
             self.snd_robot_regeneracion.play()
 
-    #  música de fondo 
+    # ---------- música de fondo ----------
+
     def play_bg_music(self):
         if not self.enabled or self.bg_playing or not self.bg_music_path:
             return
@@ -211,7 +233,7 @@ class SoundManager:
         except Exception as e:
             print("No se pudo ajustar volumen:", e)
 
-    # ganar / perder
+    # ---------- ganar / perder ----------
 
     def play_ganar(self):
         """
@@ -235,6 +257,11 @@ class SoundManager:
             self.snd_perder.play()
         else:
             print("Advertencia: snd_perder no cargado.")
+
+
+# ============================================================
+# MANEJO DE SPRITES
+# ============================================================
 
 class SpriteManager:
     def __init__(self, root):
@@ -261,7 +288,7 @@ class SpriteManager:
         self.img_liana = scale(load_gif("Lianas"))
         self.img_trampa = scale(load_gif("Trampas"))
         self.img_puerta = scale(load_gif("puerta"))
-        self.img_jugador = scale(load_gif("Jugador"))
+        self.img_jugador = scale(load_gif("Jugador"))  # ya no se usa, pero se puede dejar cargado
         self.img_tunel = scale(load_gif("Tunel"))
 
         self.img_enemigos = [
@@ -271,7 +298,10 @@ class SpriteManager:
             scale(load_gif("enemigo4")),
         ]
 
+
+# ============================================================
 # CLASES DE TERRENO
+# ============================================================
 
 class Terreno:
     codigo = CAMINO
@@ -288,12 +318,12 @@ class Muro(Terreno):
 
 class Liana(Terreno):
     codigo = LIANA
-    def permite_jugador(self): return False   # Para enemigo 
+    def permite_jugador(self): return False   # solo enemigos
     def permite_enemigo(self): return True
 
 class Tunel(Terreno):
     codigo = TUNEL
-    def permite_jugador(self): return True    # Para jugaador
+    def permite_jugador(self): return True    # solo jugador
     def permite_enemigo(self): return False
 
 class Salida(Terreno):
@@ -306,6 +336,12 @@ CLASES_TERRENO = {
     TUNEL: Tunel,
     SALIDA: Salida,
 }
+
+
+# ============================================================
+# MAPA CON LABERINTO Y GARANTÍA DE CAMINO
+# ============================================================
+
 class Mapa:
     def __init__(self, ancho, alto):
         self.ancho = ancho
@@ -315,7 +351,7 @@ class Mapa:
         # Entrada fija
         self.entrada = (alto - 2, 1)
 
-         # Cuatro posibles salidas (centro de cada lado
+        # Cuatro posibles salidas (centro de cada lado)
         self.salidas = [
             (1, ancho // 2),
             (alto - 2, ancho // 2),
@@ -326,7 +362,8 @@ class Mapa:
         self._generar_laberinto()
         self._garantizar_camino_valido()
         self._colocar_terrenos_especiales()
-    
+
+    # ------------ generación de laberinto (DFS) ------------
     def _generar_laberinto(self):
         ALTO, ANCHO = self.alto, self.ancho
         visitado = [[False] * ANCHO for _ in range(ALTO)]
@@ -373,7 +410,7 @@ class Mapa:
         for sr, sc in self.salidas:
             self.m[sr][sc] = SALIDA
 
-    #  garantizar camino entre entrada y alguna salida 
+    # ------------ garantizar camino entre entrada y alguna salida ------------
     def _garantizar_camino_valido(self):
         def hay_camino(origen, destino):
             cola = deque([origen])
@@ -394,7 +431,7 @@ class Mapa:
             if hay_camino(self.entrada, s):
                 return
 
-        # si no hay camino se abre uno recto a una salida aleatoria
+        # si no hay camino, abrimos uno recto a una salida aleatoria
         er, ec = self.entrada
         sr, sc = random.choice(self.salidas)
 
@@ -407,8 +444,19 @@ class Mapa:
             c += 1 if sc > c else -1
         self.m[sr][sc] = SALIDA
 
-    # colocar túneles y lianas útiles
+    # ------------ colocar túneles y lianas útiles ------------
     def _colocar_terrenos_especiales(self):
+        """
+        SOLO se generan túneles o lianas donde:
+          - La casilla actual es MURO.
+          - Está entre dos MUROS (horizontal o vertical).
+          - Y al mismo tiempo está entre dos CAMINOS (horizontal o vertical).
+          - No en bordes.
+        
+        Cantidad:
+          - Túneles: entre 6 y 10.
+          - Lianas: entre 3 y 6.
+        """
 
         tuneles_deseados = random.randint(6, 10)
         lianas_deseadas = random.randint(3, 6)
@@ -422,14 +470,14 @@ class Mapa:
                 if self.m[r][c] != MURO:
                     continue
 
-                #  Condición 1: entre dos muros 
+                # --- Condición 1: entre dos muros ---
                 horizontal_muro = self.m[r][c - 1] == MURO and self.m[r][c + 1] == MURO
                 vertical_muro   = self.m[r - 1][c] == MURO and self.m[r + 1][c] == MURO
 
                 if not (horizontal_muro or vertical_muro):
                     continue
 
-                # Condición 2: entre dos caminos 
+                # --- Condición 2: entre dos caminos ---
                 horizontal_camino = self.m[r][c - 2] == CAMINO and self.m[r][c + 2] == CAMINO \
                                     if 0 <= c - 2 < self.ancho and 0 <= c + 2 < self.ancho else False
 
@@ -462,7 +510,8 @@ class Mapa:
 
         for r, c in lianas:
             self.m[r][c] = LIANA
-    # consultas 
+
+    # ------------ consultas básicas ------------
     def casilla(self, f, c):
         return CLASES_TERRENO[self.m[f][c]]()
 
@@ -510,12 +559,14 @@ class Mapa:
         return (df, dc)
 
 
+# ============================================================
+# APLICACIÓN PRINCIPAL (SOLO MAPA, SIN JUGADOR/ENEMIGOS)
+# ============================================================
 
 class JuegoApp:
-    #  GUI
     def __init__(self, root):
         self.root = root
-        self.root.title("Laberinto: versión congelada")
+        self.root.title("Laberinto: mapa con modos (sin jugador/NPC)")
         self.root.resizable(False, False)
 
         width = ANCHO_MAPA * TAM_CELDA
@@ -525,26 +576,30 @@ class JuegoApp:
 
         self.sound = SoundManager()
         self.sound.play_bg_music()
-        self.sprites = SpriteManager(root) 
+        self.sprites = SpriteManager(root)
 
-        #lectura de archivos para fondo 
         base_dir = os.path.dirname(os.path.abspath(__file__))
         ruta_fondo = os.path.join(base_dir, "Fondo_Inicio.gif")
         self.img_fondo_inicio = None
         if os.path.exists(ruta_fondo):
             self.img_fondo_inicio = tk.PhotoImage(master=root, file=ruta_fondo)
 
-        
+        self.nombre_jugador = None
+
+        # Estado de mapa y modo
         self.mapa = None
         self.modo_actual = None
+        self.salida_actual_escapa = None
+        self.puertas_activas_cazador = []
 
         # Frames
         self.frame_menu_principal = tk.Frame(root, bg="#202020")
         self.frame_seleccion_modo = tk.Frame(root, bg="#202020")
-        self.frame_juego = tk.Frame(root, bg="#000000") 
+        self.frame_juego = tk.Frame(root, bg="#000000")
         self.frame_puntajes = tk.Frame(root, bg="#202020")
         self.frame_creditos = tk.Frame(root, bg="#202020")
-        
+
+        # Canvas del juego (solo dibujo de mapa)
         self.canvas = tk.Canvas(
             self.frame_juego,
             width=ANCHO_MAPA * TAM_CELDA,
@@ -553,6 +608,7 @@ class JuegoApp:
         )
         self.canvas.pack()
 
+        # Barra de información
         info_bar = tk.Frame(self.frame_juego, bg="#000000")
         info_bar.pack(fill="x")
 
@@ -566,19 +622,23 @@ class JuegoApp:
         )
         self.btn_music.pack(side="right", padx=5)
 
-        self.btn_volver_fin = tk.Button(
+        # Botón para volver al menú desde el mapa
+        self.btn_volver_menu = tk.Button(
             self.frame_juego,
             text="Volver al menú",
-            command=self._volver_menu_principal
+            command=self._wrap_button(self._volver_menu_principal)
         )
-        
+        self.btn_volver_menu.pack(pady=10)
+
+        # Construcción de pantallas
         self._construir_menu_principal()
         self._construir_seleccion_modo()
         self._construir_pantalla_puntajes()
         self._construir_pantalla_creditos()
-        
-        self.mostrar_frame(self.frame_menu_principal)  
 
+        self.mostrar_frame(self.frame_menu_principal)
+
+    # ----------------- util GUI -----------------
 
     def _center_root(self, width, height):
         self.root.update_idletasks()
@@ -596,19 +656,12 @@ class JuegoApp:
             self.root.geometry(self._fixed_geometry)
 
     def mostrar_frame(self, frame):
-        for f in (
-            self.frame_menu_principal,
-            self.frame_seleccion_modo,
-            self.frame_juego,
-            self.frame_puntajes,
-            self.frame_creditos,
-        ):
+        for f in [self.frame_menu_principal, self.frame_seleccion_modo,
+                  self.frame_juego, self.frame_puntajes, self.frame_creditos]:
             f.pack_forget()
         frame.pack(fill="both", expand=True)
-        
 
     def _wrap_button(self, action):
-       
         def cmd():
             self.sound.play_boton()
             action()
@@ -619,85 +672,54 @@ class JuegoApp:
             lbl = tk.Label(frame, image=self.img_fondo_inicio)
             lbl.place(x=0, y=0, relwidth=1, relheight=1)
 
-    #  construcción pantallas 
+    # ----------------- construcción pantallas -----------------
+
     def _construir_menu_principal(self):
         f = self.frame_menu_principal
         self._aplicar_fondo(f)
 
         btn_salir = tk.Button(f, text="Salir", command=self._wrap_button(self.root.destroy))
-        btn_salir.place(x=10, y=10) 
+        btn_salir.place(x=10, y=10)
 
         titulo = tk.Label(
-            self.frame_menu_principal,
-            text="LABERINTO",
+            f,
+            text="Proyecto 2: Laberinto (vista de mapas)",
             font=("Arial", 24, "bold"),
-            fg="white",
-            bg="#202020"
+            bg="#202020",
+            fg="white"
         )
         titulo.place(relx=0.5, rely=0.18, anchor="center")
 
         cont = tk.Frame(f, bg="#202020")
         cont.place(relx=0.5, rely=0.5, anchor="center")
 
-        # Botones principales
-        tk.Button(
-            self.frame_menu_principal,
-            text="Jugar",
-            width=20,
-            command=self._wrap_button(self._accion_jugar)
-        ).pack(pady=10)
+        tk.Button(cont, text="Jugar (ver mapas)", width=20,
+                  command=self._wrap_button(self._accion_jugar)).pack(pady=10)
+        tk.Button(cont, text="Puntajes", width=20,
+                  command=self._wrap_button(self._accion_puntajes)).pack(pady=10)
+        tk.Button(cont, text="Créditos", width=20,
+                  command=self._wrap_button(self._accion_creditos)).pack(pady=10)
 
-        tk.Button(
-            self.frame_menu_principal,
-            text="Puntajes",
-            width=20,
-            command=self._wrap_button(self._accion_puntajes)
-        ).pack(pady=10)
+        # barra de sonido
+        sound_bar = tk.Frame(f, bg="#202020")
+        sound_bar.place(x=10, rely=0.9, relheight=0.1, anchor="sw", relx=0.0)
 
-        tk.Button(
-            self.frame_menu_principal,
-            text="Creditos",
-            width=20,
-            command=self._wrap_button(self._accion_creditos)
-        ).pack(pady=10)
+        tk.Button(sound_bar, text="Música ON/OFF",
+                  command=self._wrap_button(self._toggle_music)).pack(side="left", padx=5)
 
-        tk.Button(
-            self.frame_menu_principal,
-            text="Salir",
-            width=20,
-            command=self.root.destroy
-        ).pack(pady=20)
+        tk.Button(sound_bar, text="Vol +",
+                  command=lambda: self.sound.adjust_volume(+0.1)).pack(side="left", padx=5)
 
-        # --- Barra de sonido ---
-        sound_bar = tk.Frame(self.frame_menu_principal, bg="#202020")
-        sound_bar.pack(pady=10)
+        tk.Button(sound_bar, text="Vol -",
+                  command=lambda: self.sound.adjust_volume(-0.1)).pack(side="left", padx=5)
 
-        tk.Button(
-            sound_bar,
-            text="Música ON/OFF",
-            command=self._wrap_button(self._toggle_music)
-        ).pack(side="left", padx=5)
-
-        tk.Button(
-            sound_bar,
-            text="Vol +",
-            command=self._wrap_button(lambda: self.sound.adjust_volume(+0.1))
-        ).pack(side="left", padx=5)
-
-        tk.Button(
-            sound_bar,
-            text="Vol -",
-            command=self._wrap_button(lambda: self.sound.adjust_volume(-0.1))
-        ).pack(side="left", padx=5)
-    
     def _construir_seleccion_modo(self):
-
         f = self.frame_seleccion_modo
         self._aplicar_fondo(f)
 
         titulo = tk.Label(
             f,
-            text="Seleccione modo de juego",
+            text="Seleccione modo de mapa",
             font=("Arial", 20, "bold"),
             bg="#202020",
             fg="white"
@@ -705,12 +727,12 @@ class JuegoApp:
         titulo.pack(pady=30)
 
         tk.Button(
-            f, text="Modo Cazador", width=20,
+            f, text="Mapa Modo Cazador", width=20,
             command=self._wrap_button(lambda: self.iniciar_modo("cazador"))
         ).pack(pady=10)
 
         tk.Button(
-            f, text="Modo Escapa", width=20,
+            f, text="Mapa Modo Escapa", width=20,
             command=self._wrap_button(lambda: self.iniciar_modo("escapa"))
         ).pack(pady=10)
 
@@ -718,66 +740,44 @@ class JuegoApp:
             f, text="Volver", width=12,
             command=self._wrap_button(self._volver_menu_principal)
         ).pack(pady=20)
-    
-    def _accion_jugar(self):
-        # Pedir nombre del jugador
-        nombre = simpledialog.askstring(
-            "Nombre",
-            "Ingresa tu nombre:",
-            parent=self.root
-        )
-        if not nombre:
-            # Si cancela o deja vacío, volvemos al menú
-            return
-        self.nombre_jugador = nombre.strip()
-        self.mostrar_frame(self.frame_seleccion_modo)
 
     def _construir_pantalla_puntajes(self):
         f = self.frame_puntajes
+        self._aplicar_fondo(f)
 
         titulo = tk.Label(
             f,
             text="Puntajes",
             font=("Arial", 18, "bold"),
-            fg="white",
-            bg="#202020"
+            bg="#202020",
+            fg="white"
         )
         titulo.pack(pady=10)
 
-        self.txt_puntajes = tk.Text(
-            f,
-            width=50,
-            height=15,
-            bg="#111111",
-            fg="white"
-        )
-        self.txt_puntajes.pack(padx=10, pady=10)
+        self.txt_puntajes = tk.Text(f, width=60, height=20, state="disabled")
+        self.txt_puntajes.pack(pady=10)
 
-        btn_actualizar = tk.Button(
+        self.entry_nombre_stats = tk.Entry(f)
+        self.entry_nombre_stats.pack(pady=5)
+        tk.Button(
             f,
-            text="Actualizar",
-            command=self._actualizar_texto_puntajes
-        )
-        btn_actualizar.pack(pady=5)
+            text="Ver estadísticas de jugador",
+            command=self._wrap_button(self._mostrar_stats_jugador)
+        ).pack(pady=5)
 
-        btn_volver = tk.Button(
+        tk.Button(
             f,
             text="Volver al menú",
-            command=lambda: self.mostrar_frame(self.frame_menu_principal)
-        )
-        btn_volver.pack(pady=10)
-
-    def _mostrar_pantalla_puntajes(self): ###
-        self.txt_puntajes.delete("1.0", tk.END)
-        self.txt_puntajes.insert(tk.END, "Sistema de puntajes aún en construcción...\n")
-        self.mostrar_frame(self.frame_puntajes)
+            width=20,
+            command=self._wrap_button(self._volver_menu_principal)
+        ).pack(pady=10)
 
     def _construir_pantalla_creditos(self):
         f = self.frame_creditos
         self._aplicar_fondo(f)
 
         btn_volver = tk.Button(
-            f, text=" Volver",
+            f, text="← Volver",
             command=self._wrap_button(self._volver_menu_principal)
         )
         btn_volver.place(x=10, y=10)
@@ -797,9 +797,9 @@ class JuegoApp:
         col1 = tk.Frame(contenedor, bg="#202020")
         col1.grid(row=0, column=0, padx=40)
 
-        tk.Label(col1, text="Montiel Anthony", font=("Arial", 16),
+        tk.Label(col1, text="Matilde Anthony", font=("Arial", 16),
                  bg="#202020", fg="white").pack()
-        tk.Label(col1, text="Carne: 2025132603",
+        tk.Label(col1, text="Carne: 2025-13-26-03",
                  bg="#202020", fg="white").pack()
         tk.Label(col1, text="Carrera: Ing. en Computadores",
                  bg="#202020", fg="white").pack()
@@ -818,31 +818,186 @@ class JuegoApp:
         tk.Label(col2, text="Curso: Intro a la Programación",
                  bg="#202020", fg="white").pack()
 
+    # ----------------- acciones de menú -----------------
 
-    def _mostrar_pantalla_creditos(self): ####
+    def _accion_jugar(self):
+        if not self.nombre_jugador:
+            nombre = simpledialog.askstring("Registro", "Ingrese su nombre de jugador:")
+            if not nombre:
+                return
+            self.nombre_jugador = nombre.strip()
+        self.mostrar_frame(self.frame_seleccion_modo)
+
+    def _accion_puntajes(self):
+        self.mostrar_frame(self.frame_puntajes)
+        self._actualizar_texto_puntajes()
+
+    def _accion_creditos(self):
         self.mostrar_frame(self.frame_creditos)
 
-    #  acciones de menú 
-
-    def _accion_puntajes(self): #
-        self._actualizar_texto_puntajes() #
-        self.mostrar_frame(self.frame_puntajes) 
-
-    def _accion_creditos(self): #
-         self.mostrar_frame(self.frame_creditos)
-
-    def _volver_menu_principal(self): # 
-        self.mostrar_frame(self.frame_menu_principal) 
+    def _volver_menu_principal(self):
+        self.mostrar_frame(self.frame_menu_principal)
 
     def _toggle_music(self):
         self.sound.toggle_bg_music()
+        self.btn_music.config(text=f"Música: {'ON' if self.sound.bg_playing else 'OFF'}")
 
-    #  spawns y modos (sin crear enemigos, solo posiciones) 
+    # ----------------- generación de mapas por modo -----------------
 
-    def _spawn_en_corners(self, cantidad):
-        pass
+    def iniciar_modo(self, modo):
+        """Genera un nuevo mapa según el modo, sin jugador ni enemigos."""
+        self.modo_actual = modo
+        self.mapa = Mapa(ANCHO_MAPA, ALTO_MAPA)
 
-    #  puntajes (pantalla) 
+        # Reiniciamos info de salidas
+        self.salida_actual_escapa = None
+        self.puertas_activas_cazador = []
+
+        if modo == "escapa":
+            # En modo escapa: solo una salida activa
+            self.salida_actual_escapa = random.choice(self.mapa.salidas)
+            nuevas_salidas = [self.salida_actual_escapa]
+            for sf, sc in self.mapa.salidas:
+                if (sf, sc) != self.salida_actual_escapa:
+                    self.mapa.m[sf][sc] = MURO
+            self.mapa.salidas = nuevas_salidas
+            sf, sc = self.salida_actual_escapa
+            self.mapa.m[sf][sc] = SALIDA
+        else:
+            # En modo cazador: se dejan todas las salidas por defecto
+            self.puertas_activas_cazador = list(self.mapa.salidas)
+
+        self.mostrar_frame(self.frame_juego)
+        self.lbl_info.config(
+            text=f"Modo: {self.modo_actual.capitalize()} | "
+                 f"Mapa generado para {self.nombre_jugador}"
+        )
+        self._dibujar()
+
+    # ----------------- dibujo -----------------
+
+    def _dibujar(self):
+        if not self.mapa:
+            return
+
+        self.canvas.delete("all")
+
+        for f in range(self.mapa.alto):
+            for c in range(self.mapa.ancho):
+                casilla = self.mapa.casilla(f, c)
+                x = c * TAM_CELDA
+                y = f * TAM_CELDA
+
+                if isinstance(casilla, Muro):
+                    if self.sprites.img_muro:
+                        self.canvas.create_image(x, y, image=self.sprites.img_muro, anchor="nw")
+                    else:
+                        self.canvas.create_rectangle(
+                            x, y, x + TAM_CELDA, y + TAM_CELDA,
+                            fill="black", outline="#303030"
+                        )
+                elif isinstance(casilla, Camino):
+                    if self.sprites.img_suelo:
+                        self.canvas.create_image(x, y, image=self.sprites.img_suelo, anchor="nw")
+                    else:
+                        self.canvas.create_rectangle(
+                            x, y, x + TAM_CELDA, y + TAM_CELDA,
+                            fill="white", outline="#303030"
+                        )
+                elif isinstance(casilla, Tunel):
+                    if self.sprites.img_tunel:
+                        self.canvas.create_image(x, y, image=self.sprites.img_tunel, anchor="nw")
+                    elif self.sprites.img_suelo:
+                        self.canvas.create_image(x, y, image=self.sprites.img_suelo, anchor="nw")
+                    else:
+                        self.canvas.create_rectangle(
+                            x, y, x + TAM_CELDA, y + TAM_CELDA,
+                            fill="#0000ff", outline="#303030"  # azul
+                        )
+                elif isinstance(casilla, Liana):
+                    if self.sprites.img_muro:
+                        self.canvas.create_image(x, y, image=self.sprites.img_muro, anchor="nw")
+                    else:
+                        self.canvas.create_rectangle(
+                            x, y, x + TAM_CELDA, y + TAM_CELDA,
+                            fill="black", outline="#303030"
+                        )
+                    if self.sprites.img_liana:
+                        self.canvas.create_image(x, y, image=self.sprites.img_liana, anchor="nw")
+                elif isinstance(casilla, Salida):
+                    if self.sprites.img_puerta:
+                        self.canvas.create_image(x, y, image=self.sprites.img_puerta, anchor="nw")
+                    elif self.sprites.img_suelo:
+                        self.canvas.create_image(x, y, image=self.sprites.img_suelo, anchor="nw")
+                    else:
+                        self.canvas.create_rectangle(
+                            x, y, x + TAM_CELDA, y + TAM_CELDA,
+                            fill="#ffff00", outline="#303030"  # amarillo
+                        )
+
+                # Marcos de puerta según modo
+                if isinstance(casilla, Salida):
+                    color_marco = "#ffff00"
+                    if self.modo_actual == "escapa":
+                        if (f, c) != self.salida_actual_escapa:
+                            color_marco = "#808080"
+                    else:
+                        if self.puertas_activas_cazador and (f, c) not in self.puertas_activas_cazador:
+                            color_marco = "#808080"
+
+                    self.canvas.create_rectangle(
+                        x + 2, y + 2, x + TAM_CELDA - 2, y + TAM_CELDA - 2,
+                        outline=color_marco, width=3
+                    )
+
+        # Dibujar entrada
+        ef, ec = self.mapa.entrada
+        x = ec * TAM_CELDA
+        y = ef * TAM_CELDA
+        if self.sprites.img_puerta:
+            self.canvas.create_image(x, y, image=self.sprites.img_puerta, anchor="nw")
+        else:
+            self.canvas.create_rectangle(
+                x + 3, y + 3, x + TAM_CELDA - 3, y + TAM_CELDA - 3,
+                outline="#ffff00", width=2
+            )
+
+    # ----------------- puntajes pantalla -----------------
+
+    def _mostrar_stats_jugador(self):
+        nombre = self.entry_nombre_stats.get().strip()
+        if not nombre:
+            messagebox.showwarning("Atención", "Debe escribir un nombre.")
+            return
+
+        stats_escapa = stats_por_jugador(nombre, ARCHIVO_PUNTAJES_ESCAPA)
+        stats_cazador = stats_por_jugador(nombre, ARCHIVO_PUNTAJES_CAZADOR)
+
+        texto = f"Estadísticas para {nombre}:\n\n"
+
+        if stats_escapa:
+            texto += (
+                f"Modo Escapa:\n"
+                f"  Partidas: {stats_escapa['total']}\n"
+                f"  Ganadas: {stats_escapa['ganadas']}\n"
+                f"  Mejor puntaje: {stats_escapa['mejor_puntaje']}\n"
+                f"  Mejor tiempo: {stats_escapa['mejor_tiempo']} s\n\n"
+            )
+        else:
+            texto += "Modo Escapa:\n  Sin registros.\n\n"
+
+        if stats_cazador:
+            texto += (
+                f"Modo Cazador:\n"
+                f"  Partidas: {stats_cazador['total']}\n"
+                f"  Ganadas: {stats_cazador['ganadas']}\n"
+                f"  Mejor puntaje: {stats_cazador['mejor_puntaje']}\n"
+                f"  Mejor tiempo: {stats_cazador['mejor_tiempo']} s\n\n"
+            )
+        else:
+            texto += "Modo Cazador:\n  Sin registros.\n\n"
+
+        messagebox.showinfo("Estadísticas", texto)
 
     def _actualizar_texto_puntajes(self):
         top_escapa = top5_por_archivo(ARCHIVO_PUNTAJES_ESCAPA)
@@ -871,8 +1026,10 @@ class JuegoApp:
         self.txt_puntajes.config(state="disabled")
 
 
-# Menu 
+# MAIN
+
+
 if __name__ == "__main__":
     root = tk.Tk()
-    app = JuegoApp(root) # control y Logica 
+    app = JuegoApp(root)
     root.mainloop()
